@@ -35,6 +35,35 @@ func part1(rotations []string) {
 	fmt.Printf("Part 1: %d\n", count)
 }
 
+func part2(rotations []string) {
+	count := 0
+	currPos := startingPosition
+
+	for _, aRotation := range rotations {
+		mult := -1
+		if aRotation[0] == 'R' {
+			mult = 1
+		}
+
+		numPositions, err := strconv.Atoi(aRotation[1:])
+		if err != nil {
+			continue
+		}
+
+		count += numPositions / 100
+		numPositions = numPositions % 100
+
+		if currPos != 0 && (numPositions*mult+currPos <= 0 || numPositions*mult+currPos >= 100) {
+			count++
+		}
+
+		currPos = (currPos + numPositions*mult + 100) % 100
+
+	}
+
+	fmt.Printf("Part 2: %d\n", count)
+}
+
 func main() {
 	fileName := flag.String("file", "", "Path to the file to read")
 	flag.Parse()
@@ -52,4 +81,5 @@ func main() {
 	input := strings.Split(string(fileContent), "\n")
 
 	part1(input)
+	part2(input)
 }
