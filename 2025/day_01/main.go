@@ -13,22 +13,27 @@ const (
 	dialSize         int = 100
 )
 
+func parseRotation(aRotation string) (dirMult, numClicks int, err error) {
+	dirMult = -1
+	if aRotation[0] == 'R' {
+		dirMult = 1
+	}
+
+	numClicks, err = strconv.Atoi(aRotation[1:])
+	return
+}
+
 func part1(rotations []string) {
 	count := 0
 	currPos := startingPosition
 
 	for _, aRotation := range rotations {
-		mult := -1
-		if aRotation[0] == 'R' {
-			mult = 1
-		}
-
-		numPositions, err := strconv.Atoi(aRotation[1:])
+		dirMult, numClicks, err := parseRotation(aRotation)
 		if err != nil {
 			continue
 		}
 
-		currPos = (currPos + (numPositions * mult) + dialSize) % dialSize
+		currPos = (currPos + (numClicks * dirMult) + dialSize) % dialSize
 		if currPos == 0 {
 			count++
 		}
@@ -43,24 +48,20 @@ func part2(rotations []string) {
 	currPos := startingPosition
 
 	for _, aRotation := range rotations {
-		mult := -1
-		if aRotation[0] == 'R' {
-			mult = 1
-		}
-
-		numPositions, err := strconv.Atoi(aRotation[1:])
+		dirMult, numClicks, err := parseRotation(aRotation)
 		if err != nil {
 			continue
 		}
 
-		count += numPositions / dialSize
-		numPositions = numPositions % dialSize
+		count += numClicks / dialSize
+		numClicks = numClicks % dialSize
 
-		if currPos != 0 && (numPositions*mult+currPos <= 0 || numPositions*mult+currPos >= dialSize) {
+		nextPos := numClicks*dirMult + currPos
+		if currPos != 0 && (nextPos <= 0 || nextPos >= dialSize) {
 			count++
 		}
 
-		currPos = (currPos + numPositions*mult + dialSize) % dialSize
+		currPos = (currPos + numClicks*dirMult + dialSize) % dialSize
 
 	}
 
