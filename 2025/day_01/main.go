@@ -8,7 +8,10 @@ import (
 	"strings"
 )
 
-const startingPosition int = 50
+const (
+	startingPosition int = 50
+	dialSize         int = 100
+)
 
 func part1(rotations []string) {
 	count := 0
@@ -25,7 +28,7 @@ func part1(rotations []string) {
 			continue
 		}
 
-		currPos = (currPos + (numPositions * mult) + 100) % 100
+		currPos = (currPos + (numPositions * mult) + dialSize) % dialSize
 		if currPos == 0 {
 			count++
 		}
@@ -50,14 +53,14 @@ func part2(rotations []string) {
 			continue
 		}
 
-		count += numPositions / 100
-		numPositions = numPositions % 100
+		count += numPositions / dialSize
+		numPositions = numPositions % dialSize
 
-		if currPos != 0 && (numPositions*mult+currPos <= 0 || numPositions*mult+currPos >= 100) {
+		if currPos != 0 && (numPositions*mult+currPos <= 0 || numPositions*mult+currPos >= dialSize) {
 			count++
 		}
 
-		currPos = (currPos + numPositions*mult + 100) % 100
+		currPos = (currPos + numPositions*mult + dialSize) % dialSize
 
 	}
 
