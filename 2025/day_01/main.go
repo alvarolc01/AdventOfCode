@@ -23,6 +23,10 @@ func parseRotation(aRotation string) (dirMult, numClicks int, err error) {
 	return
 }
 
+func step(currPos, numClicks, dirMult int) int {
+	return (currPos + (numClicks * dirMult) + dialSize) % dialSize
+}
+
 func part1(rotations []string) {
 	count := 0
 	currPos := startingPosition
@@ -33,7 +37,7 @@ func part1(rotations []string) {
 			continue
 		}
 
-		currPos = (currPos + (numClicks * dirMult) + dialSize) % dialSize
+		currPos = step(currPos, numClicks, dirMult)
 		if currPos == 0 {
 			count++
 		}
@@ -61,8 +65,7 @@ func part2(rotations []string) {
 			count++
 		}
 
-		currPos = (currPos + numClicks*dirMult + dialSize) % dialSize
-
+		currPos = step(currPos, numClicks, dirMult)
 	}
 
 	fmt.Printf("Part 2: %d\n", count)
