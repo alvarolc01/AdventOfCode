@@ -3,36 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 )
-
-func readFile(fileName *string) string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return string(content)
-
-}
 
 func part1(input string) {
 	floor := strings.Count(input, "(") - strings.Count(input, ")")
 
 	fmt.Printf("Part1: %d\n", floor)
 }
+
 func part2(input string) {
 	floor := 0
+	var positionFirstTimeBasement int
 	for idx, val := range input {
 		if val == '(' {
 			floor += 1
@@ -41,11 +24,11 @@ func part2(input string) {
 		}
 
 		if floor == -1 {
-			fmt.Printf("Part2: %d\n", idx+1)
-			return
+			positionFirstTimeBasement = idx + 1
+			break
 		}
-
 	}
+	fmt.Printf("Part2: %d\n", positionFirstTimeBasement)
 }
 
 func main() {
@@ -57,9 +40,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputString := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Printf("Error reading input file: %s\n", err)
+		os.Exit(1)
+	}
+	input := string(fileContent)
 
-	part1(inputString)
-	part2(inputString)
+	part1(input)
+	part2(input)
 
 }
