@@ -3,72 +3,69 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 )
 
-func readFile(fileName *string) []string {
-	file, err := os.Open(*fileName)
+type BoxDimensions struct {
+	Width  int
+	Height int
+	Length int
+}
+
+func NewBoxDimensions(line string) *BoxDimensions {
+	var height, width, length int
+	_, err := fmt.Sscanf(line, "%dx%dx%d", &length, &width, &height)
 	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
+		return nil
 	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
+	return &BoxDimensions{
+		Width:  width,
+		Height: height,
+		Length: length,
 	}
-
-	return strings.Split(string(content), "\n")
-
 }
 
 func part1(input []string) {
 	totalPaper := 0
-	var height int
-	var width int
-	var length int
+
 	for _, line := range input {
-		_, err := fmt.Sscanf(line, "%dx%dx%d", &length, &width, &height)
-		if err != nil {
-			fmt.Printf("Failed to parse line: %s\n", line)
+		box := NewBoxDimensions(line)
+		if box == nil {
 			continue
 		}
 
-		paperPresent := 2*length*width + 2*width*height + 2*height*length
-		paperPresent += min(length*width, width*height, height*length)
+		firstSide := box.Length * box.Width
+		secondSide := box.Width * box.Height
+		thirdSide := box.Height * box.Length
+
+		paperPresent := 2*firstSide + 2*secondSide + 2*thirdSide
+		paperPresent += min(firstSide, secondSide, thirdSide)
 
 		totalPaper += paperPresent
 	}
 
-	fmt.Printf("Part1: %d\n", totalPaper)
+	fmt.Printf("Part 1: %d\n", totalPaper)
 }
 
 func part2(input []string) {
 	totalPaper := 0
-	var height int
-	var width int
-	var length int
+
 	for _, line := range input {
-		_, err := fmt.Sscanf(line, "%dx%dx%d", &length, &width, &height)
-		if err != nil {
-			fmt.Printf("Failed to parse line: %s\n", line)
+		box := NewBoxDimensions(line)
+		if box == nil {
 			continue
 		}
 
-		paperPresent := length * width * height
+		paperPresent := box.Length * box.Width * box.Height
 
-		largestSide := max(length, width, height)
-		paperPresent += 2*length + 2*width + 2*height - 2*largestSide
+		largestSide := max(box.Length, box.Width, box.Height)
+		paperPresent += 2*box.Length + 2*box.Width + 2*box.Height - 2*largestSide
 
 		totalPaper += paperPresent
 	}
 
-	fmt.Printf("Part1: %d\n", totalPaper)
-
+	fmt.Printf("Part 2: %d\n", totalPaper)
 }
 
 func main() {
@@ -80,9 +77,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputStrings := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Printf("Error reading input file: %s\n", err)
+		os.Exit(1)
+	}
+	input := strings.Split(string(fileContent), "\n")
 
-	part1(inputStrings)
-	part2(inputStrings)
-
+	part1(input)
+	part2(input)
 }
