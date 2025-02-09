@@ -3,44 +3,23 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 )
-
-func readFile(fileName *string) string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return string(content)
-
-}
 
 type Position struct {
 	positionXAxis, positionYAxis int
 }
 
-func nextPosition(movement rune, currentPosition Position) Position {
+func (p *Position) Move(movement rune) {
 	if movement == '^' {
-		currentPosition.positionYAxis++
+		p.positionYAxis++
 	} else if movement == '<' {
-		currentPosition.positionXAxis--
+		p.positionXAxis--
 	} else if movement == '>' {
-		currentPosition.positionXAxis++
+		p.positionXAxis++
 	} else if movement == 'v' {
-		currentPosition.positionYAxis--
+		p.positionYAxis--
 	}
-
-	return currentPosition
 }
 
 func part1(input string) {
@@ -49,11 +28,11 @@ func part1(input string) {
 	santaPosition := Position{positionXAxis: 0, positionYAxis: 0}
 
 	for _, movement := range input {
-		santaPosition = nextPosition(movement, santaPosition)
+		santaPosition.Move(movement)
 		visited[santaPosition] = true
 	}
 
-	fmt.Printf("Part1: %d\n", len(visited))
+	fmt.Printf("Part 1: %d\n", len(visited))
 }
 
 func part2(input string) {
@@ -64,15 +43,15 @@ func part2(input string) {
 
 	for idx, movement := range input {
 		if idx%2 == 0 {
-			santaLocation = nextPosition(movement, santaLocation)
+			santaLocation.Move(movement)
 			visited[santaLocation] = true
 		} else {
-			robotLocation = nextPosition(movement, robotLocation)
+			robotLocation.Move(movement)
 			visited[robotLocation] = true
 		}
 	}
 
-	fmt.Printf("Part2: %d\n", len(visited))
+	fmt.Printf("Part 2: %d\n", len(visited))
 }
 func main() {
 	fileName := flag.String("file", "", "Path to the file to read")
@@ -83,9 +62,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputString := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Printf("Error reading input file: %v\n", err)
+		os.Exit(1)
+	}
+	input := string(fileContent)
 
-	part1(inputString)
-	part2(inputString)
+	part1(input)
+	part2(input)
 
 }
