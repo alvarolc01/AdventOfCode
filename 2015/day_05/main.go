@@ -3,41 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
 	"strings"
 )
 
-func readFile(fileName *string) []string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return strings.Split(string(content), "\n")
-
-}
-
 func containsThreeVowels(line string) bool {
-	vowelsFound := 0
+	countVowels := 0
 	for _, char := range line {
-		if strings.ContainsRune("aeiou", char) {
-			vowelsFound++
-		}
-		if vowelsFound == 3 {
-			return true
+		if char == 'a' || char == 'e' || char == 'i' || char == 'o' || char == 'u' {
+			countVowels++
 		}
 	}
-	return false
+	return countVowels >= 3
 }
 
 func containsRepeatedChars(line string) bool {
@@ -54,14 +32,10 @@ func containsForbiddenSubstrings(line string) bool {
 	return pattern.MatchString(line)
 }
 
-func isNice(line string) bool {
-	return containsThreeVowels(line) && containsRepeatedChars(line) && !containsForbiddenSubstrings(line)
-}
-
 func part1(input []string) {
 	niceStrings := 0
 	for _, line := range input {
-		if isNice(line) {
+		if containsThreeVowels(line) && containsRepeatedChars(line) && !containsForbiddenSubstrings(line) {
 			niceStrings++
 		}
 	}
@@ -70,8 +44,8 @@ func part1(input []string) {
 }
 
 func hasPalindromeSubstring(line string) bool {
-	for idx := 0; idx < len(line)-2; idx++ {
-		if line[idx] == line[idx+2] {
+	for idx := 2; idx < len(line); idx++ {
+		if line[idx-2] == line[idx] {
 			return true
 		}
 	}
@@ -79,28 +53,24 @@ func hasPalindromeSubstring(line string) bool {
 }
 
 func hasNonOverlappingMatch(line string) bool {
-	for idx := 0; idx < len(line)-1; idx++ {
-		currSubstr := line[idx : idx+2]
+	foundPairs := make(map[string]int)
 
-		for secondIdx := idx + 2; secondIdx < len(line)-1; secondIdx++ {
-			if line[secondIdx:secondIdx+2] == currSubstr {
-				return true
-			}
+	for idx := 1; idx < len(line); idx++ {
+		currSubstr := line[idx-1 : idx+1]
+		firstFoundIdx, found := foundPairs[currSubstr]
+		if !found {
+			foundPairs[currSubstr] = idx
+		} else if firstFoundIdx != idx-1 {
+			return true
 		}
-
 	}
-
 	return false
-}
-
-func secondIsNice(line string) bool {
-	return hasNonOverlappingMatch(line) && hasPalindromeSubstring(line)
 }
 
 func part2(input []string) {
 	niceStrings := 0
 	for _, line := range input {
-		if secondIsNice(line) {
+		if hasNonOverlappingMatch(line) && hasPalindromeSubstring(line) {
 			niceStrings++
 		}
 	}
@@ -117,9 +87,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputStrings := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := strings.Split(string(fileContent), "\n")
 
-	part1(inputStrings)
-	part2(inputStrings)
-
+	part1(input)
+	part2(input)
 }
