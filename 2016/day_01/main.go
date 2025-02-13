@@ -3,56 +3,29 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"math"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func readFile(fileName *string) string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
+const (
+	North = iota
+	East
+	South
+	West
+)
 
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
+type Direction int
 
-	return string(content)
+func (d *Direction) TurnLeft()  { *d = (*d - 1 + 4) % 4 }
+func (d *Direction) TurnRight() { *d = (*d + 1) % 4 }
 
-}
-
-type Direction struct {
-	directionNum int
-}
-
-func (d *Direction) TurnLeft() {
-	d.directionNum = (d.directionNum - 1 + 4) % 4
-}
-
-func (d *Direction) TurnRight() {
-	d.directionNum = (d.directionNum + 1) % 4
-}
-
-func (d *Direction) AdvanceVector() (int, int) {
-	switch d.directionNum {
-	case 0:
-		return 0, 1
-	case 1:
-		return 1, 0
-	case 2:
-		return 0, -1
-	case 3:
-		return -1, 0
-	}
-
-	return 0, 0
+var directionVectors = [4][2]int{
+	{0, 1},
+	{1, 0},
+	{0, -1},
+	{-1, 0},
 }
 
 type Point struct {
@@ -97,10 +70,11 @@ func (p *Position) ProcessCommand(command string) {
 
 	p.ChangeDirection(directionRune)
 
-	moveMultX, moveMultY := p.currentDirection.AdvanceVector()
+	directionX := directionVectors[p.currentDirection][0]
+	directionY := directionVectors[p.currentDirection][1]
 
-	p.currentPoint.x += moveMultX * stepsToMove
-	p.currentPoint.y += moveMultY * stepsToMove
+	p.currentPoint.x += directionX * stepsToMove
+	p.currentPoint.y += directionY * stepsToMove
 
 }
 
@@ -112,11 +86,12 @@ func (p *Position) ProcessCommandFirstVisited(command string) bool {
 
 	p.ChangeDirection(directionRune)
 
-	moveMultX, moveMultY := p.currentDirection.AdvanceVector()
+	directionX := directionVectors[p.currentDirection][0]
+	directionY := directionVectors[p.currentDirection][1]
 
 	for i := 0; i < stepsToMove; i++ {
-		p.currentPoint.x += moveMultX
-		p.currentPoint.y += moveMultY
+		p.currentPoint.x += directionX
+		p.currentPoint.y += directionY
 
 		if _, ok := p.visited[p.currentPoint]; ok {
 			return true
@@ -127,14 +102,10 @@ func (p *Position) ProcessCommandFirstVisited(command string) bool {
 	return false
 }
 
-func (p *Position) CalculateDistance() int {
-	return p.currentPoint.Distance()
-}
-
 func NewPosition() *Position {
 	return &Position{
 		currentPoint:     Point{x: 0, y: 0},
-		currentDirection: Direction{directionNum: 0},
+		currentDirection: North,
 		visited:          make(map[Point]bool),
 	}
 }
@@ -147,7 +118,7 @@ func part1(input string) {
 		currentPos.ProcessCommand(command)
 	}
 
-	fmt.Printf("Part 1: %d\n", currentPos.CalculateDistance())
+	fmt.Printf("Part 1: %d\n", currentPos.currentPoint.Distance())
 }
 
 func part2(input string) {
@@ -161,7 +132,7 @@ func part2(input string) {
 		}
 	}
 
-	fmt.Printf("Part 2: %d\n", currentPos.CalculateDistance())
+	fmt.Printf("Part 2: %d\n", currentPos.currentPoint.Distance())
 }
 
 func main() {
@@ -173,9 +144,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputString := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := string(fileContent)
 
-	part1(inputString)
-	part2(inputString)
+	part1(input)
+	part2(input)
 
 }
