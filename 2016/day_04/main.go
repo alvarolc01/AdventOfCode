@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
 	"sort"
@@ -13,27 +12,10 @@ import (
 )
 
 const (
-	AlphabetSize   int = 26
-	PasswordLength int = 5
+	AlphabetSize     int    = 26
+	PasswordLength   int    = 5
+	SecondPartTarget string = "northpole"
 )
-
-func readFile(fileName *string) []string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return strings.Split(string(content), "\n")
-
-}
 
 func parseRoom(room string) (string, int, string) {
 	re := regexp.MustCompile(`^(.*)-(\d+)\[(.+)\]$`)
@@ -66,7 +48,7 @@ func getFrequencyList(source string) map[rune]int {
 }
 
 func sortFrequencies(frequencyList map[rune]int) []rune {
-	var sortedCounts []rune
+	sortedCounts := make([]rune, 0, len(frequencyList))
 	for letter := range frequencyList {
 		sortedCounts = append(sortedCounts, letter)
 	}
@@ -93,7 +75,7 @@ func getNMostFrequent(frequencyList map[rune]int) string {
 }
 
 func isRoomReal(encryptedName, checksum string) bool {
-	if encryptedName == "" || checksum == "" {
+	if encryptedName == "" {
 		return false
 	}
 	frequencyList := getFrequencyList(encryptedName)
@@ -103,8 +85,7 @@ func isRoomReal(encryptedName, checksum string) bool {
 }
 
 func decryptChar(char rune, shiftForward int) rune {
-	currentChar := int(char) - 'a'
-	shiftedChar := (currentChar + shiftForward) % AlphabetSize
+	shiftedChar := (int(char) - 'a' + shiftForward) % AlphabetSize
 	return rune(shiftedChar + 'a')
 }
 
@@ -138,11 +119,11 @@ func part1(input []string) {
 func part2(input []string) {
 	foundSectorId := 0
 
-	for _, room := range input {
-		encryptedName, sectorID, _ := parseRoom(room)
+	for roomNum := 0; roomNum < len(input) && foundSectorId == 0; roomNum++ {
+		encryptedName, sectorID, _ := parseRoom(input[roomNum])
 		decryptedName := decryptRoom(encryptedName, sectorID)
 
-		if strings.Contains(strings.ToLower(decryptedName), "northpole") {
+		if strings.Contains(strings.ToLower(decryptedName), SecondPartTarget) {
 			foundSectorId = sectorID
 		}
 	}
@@ -159,9 +140,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputStrings := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := strings.Split(string(fileContent), "\n")
 
-	part1(inputStrings)
-	part2(inputStrings)
+	part1(input)
+	part2(input)
 
 }
