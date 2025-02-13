@@ -5,58 +5,49 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
-func readFile(fileName *string) string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
+const (
+	PrefixLengthFirstPart  int = 5
+	PrefixLengthSecondPart int = 6
+)
 
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
+func GetMD5Hash(input string, num int) string {
+	var sb strings.Builder
+	sb.WriteString(input)
+	sb.WriteString(strconv.Itoa(num))
 
-	return string(content)
-
-}
-
-func GetMD5Hash(text string) string {
-	hash := md5.Sum([]byte(text))
+	hash := md5.Sum([]byte(sb.String()))
 	return hex.EncodeToString(hash[:])
 }
 
-func StarsWithNZeros(attempt string, numZeros int) bool {
-	return attempt[0:numZeros] == strings.Repeat("0", numZeros)
-}
-
 func part1(input string) {
-	addedNum := 0
-	currentAttempt := fmt.Sprintf("%s%d", input, addedNum)
-	for !StarsWithNZeros(GetMD5Hash(currentAttempt), 5) {
-		addedNum++
-		currentAttempt = fmt.Sprintf("%s%d", input, addedNum)
+	currentNum := 0
+	expectedPrefix := strings.Repeat("0", PrefixLengthFirstPart)
+	currentHash := GetMD5Hash(input, currentNum)
+
+	for !strings.HasPrefix(currentHash, expectedPrefix) {
+		currentNum++
+		currentHash = GetMD5Hash(input, currentNum)
 	}
 
-	fmt.Printf("Part 1: %d\n", addedNum)
+	fmt.Printf("Part 1: %d\n", currentNum)
 }
 
 func part2(input string) {
-	addedNum := 0
-	currentAttempt := fmt.Sprintf("%s%d", input, addedNum)
-	for !StarsWithNZeros(GetMD5Hash(currentAttempt), 6) {
-		addedNum++
-		currentAttempt = fmt.Sprintf("%s%d", input, addedNum)
+	currentNum := 0
+	expectedPrefix := strings.Repeat("0", PrefixLengthSecondPart)
+	currentHash := GetMD5Hash(input, currentNum)
+
+	for !strings.HasPrefix(currentHash, expectedPrefix) {
+		currentNum++
+		currentHash = GetMD5Hash(input, currentNum)
 	}
 
-	fmt.Printf("Part2: %d\n", addedNum)
+	fmt.Printf("Part 2: %d\n", currentNum)
 }
 
 func main() {
@@ -68,9 +59,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputString := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Printf("Error reading input file: %v\n", err)
+		os.Exit(1)
+	}
+	input := string(fileContent)
 
-	part1(inputString)
-	part2(inputString)
-
+	part1(input)
+	part2(input)
 }
