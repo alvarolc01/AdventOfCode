@@ -3,28 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 )
 
-func readFile(fileName *string) []string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return strings.Split(string(content), "\n")
-
-}
+const EmptyButton rune = '#'
 
 type Position struct {
 	xAxis  int
@@ -33,39 +16,24 @@ type Position struct {
 }
 
 func (p *Position) Move(direction rune) {
-	switch direction {
-	case 'L':
-		p.MoveLeft()
-	case 'R':
-		p.MoveRight()
-	case 'U':
-		p.MoveUp()
-	case 'D':
-		p.MoveDown()
+	movements := map[rune][2]int{
+		'L': {0, -1},
+		'R': {0, 1},
+		'U': {-1, 0},
+		'D': {1, 0},
 	}
-}
 
-func (p *Position) MoveLeft() {
-	if p.yAxis > 0 && p.keypad[p.xAxis][p.yAxis-1] != '#' {
-		p.yAxis--
-	}
-}
+	if movement, valid := movements[direction]; valid {
+		nextX := p.xAxis + movement[0]
+		nextY := p.yAxis + movement[1]
 
-func (p *Position) MoveRight() {
-	if p.yAxis < len(p.keypad)-1 && p.keypad[p.xAxis][p.yAxis+1] != '#' {
-		p.yAxis++
-	}
-}
+		xWithinBounds := nextX >= 0 && nextX < len(p.keypad)
+		yWithinBounds := nextY >= 0 && nextY < len(p.keypad)
 
-func (p *Position) MoveUp() {
-	if p.xAxis > 0 && p.keypad[p.xAxis-1][p.yAxis] != '#' {
-		p.xAxis--
-	}
-}
-
-func (p *Position) MoveDown() {
-	if p.xAxis < len(p.keypad)-1 && p.keypad[p.xAxis+1][p.yAxis] != '#' {
-		p.xAxis++
+		if xWithinBounds && yWithinBounds && p.keypad[nextX][nextY] != EmptyButton {
+			p.xAxis = nextX
+			p.yAxis = nextY
+		}
 	}
 }
 
@@ -124,9 +92,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputString := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := strings.Split(string(fileContent), "\n")
 
-	part1(inputString)
-	part2(inputString)
+	part1(input)
+	part2(input)
 
 }
