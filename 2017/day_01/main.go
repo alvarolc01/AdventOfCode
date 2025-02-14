@@ -3,34 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 )
-
-func readFile(fileName *string) string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return string(content)
-
-}
 
 func sumEqualDigits(input string, distanceToMatchingDigit int) int {
 	sumDigits := 0
 
 	for i := 0; i < len(input); i++ {
-		nextPosistion := (i + distanceToMatchingDigit) % len(input)
-		if input[i] == input[nextPosistion] {
+		nextPosition := (i + distanceToMatchingDigit) % len(input)
+		if input[i] == input[nextPosition] {
 			sumDigits += int(input[i] - '0')
 		}
 	}
@@ -59,9 +40,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputString := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := string(fileContent)
 
-	part1(inputString)
-	part2(inputString)
-
+	part1(input)
+	part2(input)
 }

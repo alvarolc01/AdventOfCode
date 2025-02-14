@@ -3,30 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"slices"
 	"strconv"
 	"strings"
 )
-
-func readFile(fileName *string) []string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return strings.Split(string(content), "\n")
-
-}
 
 func part1(sortedInput [][]int) {
 	checksum := 0
@@ -60,11 +41,12 @@ func part2(sortedInput [][]int) {
 }
 
 func parseLine(line string) []int {
-	var parsedLine []int
-	values := strings.Split(line, "\t")
-	for _, value := range values {
+	values := strings.Fields(line)
+	parsedLine := make([]int, len(values))
+
+	for idx, value := range values {
 		intValue, _ := strconv.Atoi(value)
-		parsedLine = append(parsedLine, intValue)
+		parsedLine[idx] = intValue
 	}
 
 	return parsedLine
@@ -95,11 +77,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputString := readFile(fileName)
-	parsedInput := parseInputString(inputString)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := strings.Split(string(fileContent), "\n")
+
+	parsedInput := parseInputString(input)
 	sortIndividualVectors(parsedInput)
 
 	part1(parsedInput)
 	part2(parsedInput)
-
 }
