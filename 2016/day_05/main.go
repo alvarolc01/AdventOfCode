@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -18,24 +17,6 @@ const (
 	IndexValueSecondPart int    = 6
 	ExpectedPrefix       string = "00000"
 )
-
-func readFile(fileName *string) string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return string(content)
-
-}
 
 func generateHash(doorId string, idx int) string {
 	doorId += strconv.Itoa(idx)
@@ -58,14 +39,22 @@ func part1(doorID string) {
 
 func isValidHash(hash string, passwordCharacters map[int]rune) (bool, int) {
 	hasPrefix := strings.HasPrefix(hash, ExpectedPrefix)
-	position := int(hash[IndexPosition]) - '0'
-	_, found := passwordCharacters[position]
+	if !hasPrefix {
+		return false, 0
+	}
 
-	return !found && hasPrefix && position < PasswordLength, position
+	position := int(hash[IndexPosition]) - '0'
+	if position >= PasswordLength || position < 0 {
+		return false, 0
+	}
+
+	_, found := passwordCharacters[position]
+	return !found, position
 }
 
 func getPasswordCharacters(doorID string) map[int]rune {
 	passwordCharacters := make(map[int]rune)
+
 	for i := 0; len(passwordCharacters) != PasswordLength; i++ {
 		hash := generateHash(doorID, i)
 		isValid, position := isValidHash(hash, passwordCharacters)
@@ -73,6 +62,7 @@ func getPasswordCharacters(doorID string) map[int]rune {
 			passwordCharacters[position] = rune(hash[IndexValueSecondPart])
 		}
 	}
+
 	return passwordCharacters
 }
 
@@ -96,9 +86,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputStrings := readFile(fileName)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := string(fileContent)
 
-	part1(inputStrings)
-	part2(inputStrings)
+	part1(input)
+	part2(input)
 
 }

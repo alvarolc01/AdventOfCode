@@ -3,58 +3,38 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func readFile(fileName *string) []string {
-	file, err := os.Open(*fileName)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("Failed to read file content: %s", err)
-		os.Exit(1)
-	}
-
-	return strings.Split(string(content), "\n")
-
-}
-
 func parseTriangle(triangleString string) ([]int, error) {
 	triangleString = strings.TrimSpace(triangleString)
 	vertexes := strings.Fields(triangleString)
 
-	var vertices []int
+	if len(vertexes) != 3 {
+		return nil, fmt.Errorf("expected 3 vertexes, got %d", len(vertexes))
+	}
 
-	for _, vertex := range vertexes {
+	vertices := make([]int, 3)
+	for idx, vertex := range vertexes {
 		vertexInt, err := strconv.Atoi(vertex)
 		if err != nil {
 			return nil, err
 		}
-		vertices = append(vertices, vertexInt)
-	}
-
-	if len(vertexes) != 3 {
-		return nil, fmt.Errorf("expected 3 vertexes, got %d", len(vertexes))
+		vertices[idx] = vertexInt
 	}
 
 	return vertices, nil
 }
 
 func parseTriangles(inputStrings []string) [][]int {
-	triangles := make([][]int, len(inputStrings))
+	var triangles [][]int
 
-	for idx, triangleString := range inputStrings {
-		parsedTriangle, valid := parseTriangle(triangleString)
-		if valid == nil {
-			triangles[idx] = parsedTriangle
+	for _, triangleString := range inputStrings {
+		parsedTriangle, err := parseTriangle(triangleString)
+		if err == nil {
+			triangles = append(triangles, parsedTriangle)
 		}
 	}
 
@@ -65,13 +45,12 @@ func rotate(matrix [][]int) {
 	for i := 0; i < len(matrix); i++ {
 		for j := i + 1; j < len(matrix[0]); j++ {
 			matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
-
 		}
 	}
 }
 
 func rotateTriangles(triangles [][]int) {
-	for i := 0; i < len(triangles); i += 3 {
+	for i := 0; i+2 < len(triangles); i += 3 {
 		rotate(triangles[i : i+3])
 	}
 }
@@ -122,8 +101,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputStrings := readFile(fileName)
-	listTriangles := parseTriangles(inputStrings)
+	fileContent, err := os.ReadFile(*fileName)
+	if err != nil {
+		fmt.Println("Error reading input file:", err)
+		os.Exit(1)
+	}
+	input := strings.Split(string(fileContent), "\n")
+
+	listTriangles := parseTriangles(input)
 
 	part1(listTriangles)
 	part2(listTriangles)
