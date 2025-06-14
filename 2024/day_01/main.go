@@ -21,6 +21,20 @@ func part1(leftCol, rightCol []int) {
 	fmt.Printf("Part 1: %d\n", totalDistance)
 }
 
+func part2(leftCol, rightCol []int) {
+	repetitionsRight := make(map[int]int)
+	for _, val := range rightCol {
+		repetitionsRight[val]++
+	}
+
+	similarityScore := 0
+	for _, key := range leftCol {
+		similarityScore += repetitionsRight[key] * key
+	}
+
+	fmt.Printf("Part 2: %d\n", similarityScore)
+}
+
 func parseInput(input string) (leftCol, rightCol []int, err error) {
 	lines := strings.Split(input, "\n")
 
@@ -64,5 +78,5 @@ func main() {
 	}
 
 	part1(leftCol, rightCol)
-
+	part2(leftCol, rightCol)
 }
