@@ -28,6 +28,19 @@ func isReportSafe(report []int) bool {
 	return true
 }
 
+func isReportSafeWithTolerance(report []int) bool {
+	for idx := 0; idx < len(report); idx++ {
+
+		updatedSlice := append([]int{}, report[:idx]...)
+		updatedSlice = append(updatedSlice, report[idx+1:]...)
+		if isReportSafe(updatedSlice) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func part1(reports [][]int) {
 	safeReports := 0
 	for _, currReport := range reports {
@@ -37,6 +50,17 @@ func part1(reports [][]int) {
 	}
 
 	fmt.Printf("Part 1: %d\n", safeReports)
+}
+
+func part2(reports [][]int) {
+	safeReports := 0
+	for _, currReport := range reports {
+		if isReportSafe(currReport) || isReportSafeWithTolerance(currReport) {
+			safeReports++
+		}
+	}
+
+	fmt.Printf("Part 2: %d\n", safeReports)
 }
 
 func parseInput(input string) ([][]int, error) {
@@ -85,4 +109,5 @@ func main() {
 	}
 
 	part1(rows)
+	part2(rows)
 }
