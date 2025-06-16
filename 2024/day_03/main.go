@@ -8,8 +8,14 @@ import (
 	"strings"
 )
 
+const (
+	enablingInstruction  = "do()"
+	disablingInstruction = "don't()"
+)
+
 var (
-	reBase = regexp.MustCompile(`mul\((\d{1,3}),(\d{1,3})\)`)
+	reBase     = regexp.MustCompile(`mul\((\d{1,3}),(\d{1,3})\)`)
+	reEnabling = regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)|don't\(\)|do\(\)`)
 )
 
 func extractOperands(match string) (int, int, error) {
@@ -35,6 +41,32 @@ func part1(rows []string) {
 	fmt.Printf("Part 1: %d\n", totalMult)
 }
 
+func part2(rows []string) {
+	totalMult := 0
+	enabled := true
+
+	for _, line := range rows {
+		matches := reEnabling.FindAllString(line, -1)
+		for _, match := range matches {
+			if match == disablingInstruction {
+				enabled = false
+			} else if match == enablingInstruction {
+				enabled = true
+			} else if enabled {
+				multiplicand, multiplier, err := extractOperands(match)
+				if err != nil {
+					return
+				}
+				totalMult += multiplicand * multiplier
+			}
+
+		}
+
+	}
+
+	fmt.Printf("Part 2: %d\n", totalMult)
+}
+
 func main() {
 	fileName := flag.String("file", "", "Path to the file to read")
 	flag.Parse()
@@ -52,5 +84,5 @@ func main() {
 	rows := strings.Split(string(fileContent), "\n")
 
 	part1(rows)
-
+	part2(rows)
 }
