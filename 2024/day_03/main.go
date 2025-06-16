@@ -59,9 +59,7 @@ func part2(rows []string) {
 				}
 				totalMult += multiplicand * multiplier
 			}
-
 		}
-
 	}
 
 	fmt.Printf("Part 2: %d\n", totalMult)
