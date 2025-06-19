@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -30,6 +31,31 @@ func part1(precedences PrecedenceMap, magazines [][]int) {
 	}
 
 	fmt.Printf("Part 1: %d\n", midPagesSum)
+}
+
+func sortMagazineWithPrecedence(magazine []int, precedences PrecedenceMap) {
+	sort.Slice(magazine, func(i, j int) bool {
+		if precedences[magazine[i]][magazine[j]] {
+			return true
+		}
+		if precedences[magazine[j]][magazine[i]] {
+			return false
+		}
+		return true
+	})
+}
+
+func part2(precedences PrecedenceMap, magazines [][]int) {
+	midPagesSum := 0
+
+	for _, mag := range magazines {
+		if !isValidMagazine(mag, precedences) {
+			sortMagazineWithPrecedence(mag, precedences)
+			midPagesSum += mag[len(mag)/2]
+		}
+	}
+
+	fmt.Printf("Part 2: %d\n", midPagesSum)
 }
 
 func parsePrecedences(section string) (PrecedenceMap, error) {
@@ -126,4 +152,5 @@ func main() {
 	}
 
 	part1(precedences, magazines)
+	part2(precedences, magazines)
 }
