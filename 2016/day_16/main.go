@@ -75,7 +75,7 @@ func part2(initialState string) {
 
 func main() {
 
-	initialDiskState := "10111011111001111"
+	initialDiskState := "1"
 
 	part1(initialDiskState)
 	part2(initialDiskState)
